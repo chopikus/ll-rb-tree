@@ -13,15 +13,16 @@ int main(int argc, char* argv[]) {
         int t = rnd.next(0, 100);
         if (t <= 3) {
             cout << "?" << endl;
-        } else if (t <= 60) {
+        } else if (t <= 67) {
             int num = rnd.next(-10000, 10000);
             v.push_back(num);
             cout << "+ " << num << endl;
         } else {
-            if (rnd.next(1, 10) <= 7 && v.size()>0)
+            cout << "- " << endl;
+            /*if (rnd.next(1, 10) <= 7 && v.size()>0)
                 cout << "- " << v[rnd.next(v.size())] << endl;
             else
-                cout << "- " << rnd.next(-10000, 10000) << endl;
+                cout << "- " << rnd.next(-10000, 10000) << endl;*/
         }
     }
     return 0;

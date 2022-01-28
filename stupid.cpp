@@ -23,9 +23,11 @@ int main() {
             cout << endl;
         }
         if (x=='-') {
-            int y=0;
-            cin >> y;
-            Set.erase(y);
+            //int y=0;
+            //cin >> y;
+            if (!Set.empty()) {
+                Set.erase(Set.begin());
+            }
         }
     }
     return 0;

@@ -42,42 +42,41 @@ Node* rotR(Node* y) {
     return x;
 }
 
-Node* blackify_color(Node* node) { //should be called only if colors of both sons are RED
-    node->color = RED;
+Node* split_four_node(Node* node) {
+    node = rotR(node);
     node->left->color = BLACK;
-    node->right->color = BLACK;
+    return node;
+}
+
+Node* lean_left(Node* node) {
+    node = rotL(node);
+    node->left->color = RED;
+    node->color = BLACK;
     return node;
 }
 
 Node* insert(Node* node, int value) {
     int node_value = node->value;
-    if (value == node->value)
-        return node;
-    if (value > node->value) {
+    if (get_color(node->left)==RED && get_color(node->left->left)==RED) {
+        node = split_four_node(node);
+    }
+    if (value == node->value) {
+        node->value = value; 
+    } else if (value > node->value) {
         if (node->right == nullptr) {
             node->right = new Node(value);
         } else {
             node->right = insert(node->right, value);
         }
-    }
-    if (value < node->value) {
+    } else {
         if (node->left == nullptr) {
             node->left = new Node(value);
         } else {
             node->left = insert(node->left, value);
         }
     }
-    if (get_color(node->left)==BLACK && get_color(node->right)==RED) {
-        node = rotL(node);
-        node->left->color = RED;
-        node->color = BLACK;
-    }
-    if (get_color(node->left)==RED && get_color(node->left->left)==RED) {
-        node = rotR(node);
-        node->left->color = BLACK;
-    }
-    if (get_color(node->left)==RED && get_color(node->right)==RED) {
-        node = blackify_color(node);        
+    if (get_color(node->right)==RED) {
+        node = lean_left(node);
     }
     return node;
 }
@@ -91,6 +90,59 @@ Node* insert_wrapper(Node* node, int value) {
     }
     return_node->color = BLACK;
     return return_node;
+}
+
+Node* move_red_left(Node* node) {
+    node->color = BLACK;
+    node->left->color = RED;
+    if (node->right != nullptr) {
+        if (get_color(node->right->left)==RED) {
+            node->right = rotR(node->right);
+            node = rotL(node);
+        } else {
+            node->right->color = RED;
+        }
+    }
+    return node;
+}
+
+Node* move_red_right(Node* node) {
+    node->color = BLACK;
+    node->right->color = RED;
+    if (node->left != nullptr && get_color(node->left->left)==RED) {
+        node = rotR(node);
+        node->color = RED;
+        node->left->color = BLACK;
+    } else {
+        node->left->color = RED;
+    }
+    return node;
+}
+
+Node* delete_min(Node* node) {
+    if (node->left == nullptr) {
+        //assert(node->right == nullptr);
+        return nullptr;
+    }
+    if (get_color(node->left) == BLACK && node->left != nullptr 
+        && get_color(node->left->left) == BLACK) {
+        node = move_red_left(node);       
+    }
+    node->left = delete_min(node->left);
+    if (get_color(node->right) == RED) {
+        node = lean_left(node);
+    }
+    return node;
+}
+
+Node* delete_min_wrapper(Node* node) {
+    if (node == nullptr) {
+        return nullptr;
+    }
+    node = delete_min(node);
+    if (node != nullptr)
+        node->color = BLACK;
+    return node;
 }
 
 int mx=0;
@@ -122,7 +174,7 @@ int main() {
             left_right(tree, 0);        
             cout << endl;
         } else if (x == '-') {
-                
+            tree = delete_min_wrapper(tree); 
         }
     }
     return 0;
