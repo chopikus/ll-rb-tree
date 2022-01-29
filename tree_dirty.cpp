@@ -62,23 +62,41 @@ Node* rotR(Node* y) {
     return x;
 }
 
-Node* split_four_node(Node* node) {
+Node* rotate_right(Node* node) {
+    assert(node->left != nullptr && node->left->color == RED);
     node = rotR(node);
-    node->left->color = BLACK;
+    node->color = node->right->color;
+    node->right->color = RED;
     return node;
 }
 
-Node* lean_left(Node* node) {
+Node* rotate_left(Node* node) {
+    assert(node->right != nullptr && node->right->color == RED);
     node = rotL(node);
     node->color = node->left->color;
     node->left->color = RED;
     return node;
 }
 
-Node* blackify_color(Node* node) { //should be called only if colors of both sons are RED
+Node* flip_colors(Node* node) { //should be called only if colors of both sons are RED
+    assert(node->left != nullptr && node->right != nullptr && node->left->color != node->color && node->right->color != node->color);
     node->color = RED;
     node->left->color = BLACK;
     node->right->color = BLACK;
+    return node;
+}
+
+Node* balance(Node* node) {
+    if (get_color(node->left)==BLACK && get_color(node->right)==RED) {
+        node = rotate_left(node);
+    }
+    if (get_color(node->left)==RED && get_color(node->left->left)==RED) {
+        node = rotate_right(node);
+    }
+    if (get_color(node->left)==RED && get_color(node->right)==RED) {
+        cout << node->color << endl;
+        node = flip_colors(node);
+    }   
     return node;
 }
 
@@ -100,17 +118,7 @@ Node* insert(Node* node, int value) {
             node->left = insert(node->left, value);
         }
     }
-    //cout << node->value << ' ' << textify_color(get_color(node->left)) << ' ' << textify_color(get_color(node->right)) << endl;
-    if (get_color(node->left)==BLACK && get_color(node->right)==RED) {
-        node = lean_left(node);
-    }
-    if (get_color(node->left)==RED && get_color(node->left->left)==RED) {
-        node = split_four_node(node);
-    }
-    if (get_color(node->left)==RED && get_color(node->right)==RED) {
-        node = blackify_color(node);
-    }
-    return node;
+    return balance(node);
 }
 
 Node* insert_wrapper(Node* node, int value) {
@@ -125,28 +133,20 @@ Node* insert_wrapper(Node* node, int value) {
 }
 
 Node* move_red_left(Node* node) {
-    node->color = BLACK;
-    node->left->color = RED;
-    if (node->right != nullptr) {
-        if (get_color(node->right->left)==RED) {
-            node->right = rotR(node->right);
-            node = rotL(node);
-        } else {
-            node->right->color = RED;
-        }
+    flip_colors(node);
+    if (node->right != nullptr && get_color(node->right->left) == RED) {
+        node->right = rotate_right(node->right);
+        node = rotate_left(node);
+        flip_colors(node);
     }
     return node;
 }
 
 Node* move_red_right(Node* node) {
-    node->color = BLACK;
-    node->right->color = RED;
-    if (node->left != nullptr && get_color(node->left->left)==RED) {
-        node = rotR(node);
-        node->color = RED;
-        node->left->color = BLACK;
-    } else {
-        node->left->color = RED;
+    flip_colors(node);
+    if (node->left != nullptr && get_color(node->left->left) == RED) {
+        node = rotate_right(node);
+        flip_colors(node);
     }
     return node;
 }
@@ -161,20 +161,70 @@ Node* delete_min(Node* node) {
         node = move_red_left(node);       
     }
     node->left = delete_min(node->left);
-    if (get_color(node->left)==BLACK && get_color(node->right)==RED) {
-        node = lean_left(node);
-    }
-    if (get_color(node->left)==RED && get_color(node->right)==RED) {
-        node = blackify_color(node);
-    }
-    return node;
+    return balance(node);
 }
 
 Node* delete_min_wrapper(Node* node) {
     if (node == nullptr) {
         return nullptr;
     }
+    if (get_color(node->left) != RED && get_color(node->right) != RED) {
+        node->color = RED;
+    }
     node = delete_min(node);
+    if (node != nullptr)
+        node->color = BLACK;
+    return node;
+}
+
+Node* min_node(Node* node) {
+    if (node == nullptr)
+        return nullptr;
+    while (node->left != nullptr) {
+        node = node->left;
+    }
+    return node;
+}
+
+Node* remove(Node* node, int value) {
+    if (node == nullptr) {
+        return nullptr;
+    }
+    if (value < node->value) {
+        if (get_color(node->left) == BLACK && node->left != nullptr 
+                && get_color(node->left->left) == BLACK) {
+            node = move_red_left(node);    //crash happens supposedly if node->left->left == nullptr
+        }
+        node->left = remove(node->left, value);
+    } else {
+        if (get_color(node->left) == RED) {
+            node = rotate_right(node);
+        }
+        if (node->value == value && node->right == nullptr) {
+            assert(node->left == nullptr); //why??
+            return nullptr;
+        }
+        if (get_color(node->right) == BLACK && node->right != nullptr 
+                && get_color(node->right->left) == BLACK) {
+            //cout << "COLOR " <<  node->color << endl;
+            node = move_red_right(node);
+            assert(node->right != nullptr);
+            Node* min_right_node = min_node(node->right);
+            node->value = min_right_node->value;
+            node->right = delete_min(node->right); 
+        }
+    }
+    return balance(node);
+}
+
+Node* remove_wrapper(Node* node, int value) {
+    if (node == nullptr) {
+        return nullptr;
+    }
+    if (get_color(node->left) == BLACK && get_color(node->right) == BLACK) {
+        node->color = RED;
+    }
+    node = remove(node, value);
     if (node != nullptr)
         node->color = BLACK;
     return node;
@@ -226,7 +276,7 @@ int main() {
     Node* tree = nullptr;
     int cnt=0;
     for (int i=0; i<q; i++) {
-    //while (true) {
+        //while (true) {
         char x='1';
         cin >> x;
         if (x=='s') {
@@ -246,8 +296,12 @@ int main() {
             myfile.open ("output.dot");
             myfile << visualise_wrapper(tree);
             myfile.close();
-        } else if (x == '-') {
+        } else if (x == 'x') {
             tree = delete_min_wrapper(tree); 
+        } else if (x == '-') {
+            int value = 0;
+            cin >> value;
+            tree = remove_wrapper(tree, value);
         }
     }
     //left_right(tree, 0);
