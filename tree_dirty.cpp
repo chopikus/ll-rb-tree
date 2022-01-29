@@ -250,5 +250,7 @@ int main() {
             tree = delete_min_wrapper(tree); 
         }
     }
+    //left_right(tree, 0);
+    //cout << mx << endl;
     return 0;
 }

@@ -14,7 +14,7 @@ int main(int argc, char* argv[]) {
         if (t <= 3) {
             cout << "?" << endl;
         } else if (t <= 67) {
-            int num = rnd.next(-10000, 10000);
+            int num = rnd.next(-1000000000, 1000000000);
             v.push_back(num);
             cout << "+ " << num << endl;
         } else {
