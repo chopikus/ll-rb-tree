@@ -1,15 +1,15 @@
 digraph g {
-B [label=-113798, color = BLACK] 
-C [label=-200741, color = RED] 
-B-> C
-H [label=-333674, color = BLACK] 
-C-> H
-F [label=-872023, color = RED] 
-H-> F
-E [label=-170046, color = BLACK] 
-C-> E
-D [label=278545, color = BLACK] 
+B [label=200, color = BLACK] 
+A [label=100, color = BLACK] 
+B-> A
+H [label=11, color = BLACK] 
+A-> H
+F [label=124, color = BLACK] 
+A-> F
+D [label=300, color = BLACK] 
 B-> D
-G [label=198323, color = RED] 
+E [label=250, color = BLACK] 
+D-> E
+G [label=2388, color = BLACK] 
 D-> G
 }

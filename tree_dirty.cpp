@@ -2,12 +2,11 @@
 
 using namespace std;
 
-enum Color {
-    RED,
-    BLACK
-};
+using Color = bool;
 
 string last_used_name="@";
+const Color BLACK = false;
+const Color RED = true;
 
 string next_name() {
     string res = last_used_name;
@@ -34,6 +33,27 @@ struct Node {
     string name = "";
     Node(int value_): value(value_), name(next_name()) {}
 };
+
+string textify_color(Color color);
+Color get_color(Node* node);
+Node* rotL(Node* x);
+Node* rotR(Node* y);
+Node* rotate_left(Node* node);
+Node* rotate_right(Node* node);
+Node* flip_colors(Node* node);
+Node* balance(Node* node);
+Node* insert(Node* node, int value);
+Node* insert_wrapper(Node* node, int value);
+Node* move_red_left(Node* node);
+Node* move_red_right(Node* node);
+Node* delete_min(Node* node);
+Node* delete_min_wrapper(Node* node);
+Node* min_node(Node* node);
+Node* remove(Node* node, int value);
+Node* remove_wrapper(Node* node, int value);
+void left_right(Node* node, int h);
+string visualize(Node* node);
+string visualise_wrapper(Node* node);
 
 string textify_color(Color color) {
     if (color == BLACK)
@@ -78,11 +98,11 @@ Node* rotate_left(Node* node) {
     return node;
 }
 
-Node* flip_colors(Node* node) { //should be called only if colors of both sons are RED
-    assert(node->left != nullptr && node->right != nullptr && node->left->color != node->color && node->right->color != node->color);
-    node->color = RED;
-    node->left->color = BLACK;
-    node->right->color = BLACK;
+Node* flip_colors(Node* node) {
+    assert(node != nullptr && node->left != nullptr && node->right != nullptr && node->left->color != node->color && node->right->color != node->color);
+    node->color = !node->color;
+    node->left->color = !node->left->color;
+    node->right->color = !node->right->color;
     return node;
 }
 
@@ -94,7 +114,6 @@ Node* balance(Node* node) {
         node = rotate_right(node);
     }
     if (get_color(node->left)==RED && get_color(node->right)==RED) {
-        cout << node->color << endl;
         node = flip_colors(node);
     }   
     return node;
@@ -193,7 +212,7 @@ Node* remove(Node* node, int value) {
     if (value < node->value) {
         if (get_color(node->left) == BLACK && node->left != nullptr 
                 && get_color(node->left->left) == BLACK) {
-            node = move_red_left(node);    //crash happens supposedly if node->left->left == nullptr
+            node = move_red_left(node);
         }
         node->left = remove(node->left, value);
     } else {
@@ -206,12 +225,15 @@ Node* remove(Node* node, int value) {
         }
         if (get_color(node->right) == BLACK && node->right != nullptr 
                 && get_color(node->right->left) == BLACK) {
-            //cout << "COLOR " <<  node->color << endl;
             node = move_red_right(node);
+        }
+        if (node->value == value) {
             assert(node->right != nullptr);
             Node* min_right_node = min_node(node->right);
             node->value = min_right_node->value;
             node->right = delete_min(node->right); 
+        } else {
+            node->right = remove(node->right, value);
         }
     }
     return balance(node);
@@ -271,6 +293,8 @@ string visualise_wrapper(Node* node) {
 }
 
 int main() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
     int q=0;
     cin >> q;
     Node* tree = nullptr;
@@ -289,8 +313,8 @@ int main() {
             tree = insert_wrapper(tree, value);
             //cout << tree->value << endl;
         } else if (x=='?') {
-            left_right(tree, 0);
-            cout << endl;
+            //left_right(tree, 0);
+            //cout << endl;
         } else if (x == '!') {
             ofstream myfile;
             myfile.open ("output.dot");
