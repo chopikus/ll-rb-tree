@@ -1,0 +1,9 @@
+digraph g {
+A [label=100, color = BLACK] 
+E [label=77, color = BLACK] 
+A-> E
+G [label=50, color = RED] 
+E-> G
+B [label=200, color = BLACK] 
+A-> B
+}
