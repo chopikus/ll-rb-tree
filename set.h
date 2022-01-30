@@ -1,6 +1,7 @@
-#include <bits/stdc++.h>
-
-using namespace std;
+#include <iostream>
+#include <cassert>
+#include <stddef.h>
+#include <initializer_list>
 
 template<class ValueType>
 class Set { 
@@ -15,7 +16,7 @@ class Set {
             Node* parent = nullptr;
             ValueType value;
             Color color = RED;
-            int size = 1;
+            size_t size = 1;
             friend class Set;
 
             Node() {}
@@ -74,10 +75,12 @@ class Set {
         };
          
     public:
-        class Iterator {
+        class iterator {
             public: 
-                Iterator(const Iterator& another) = default;
+                iterator() = default;
+                iterator(const iterator& another) = default;
                 const ValueType& operator*() const {
+                    assert(*this != set_->end());
                     return node->value;             
                 }
                 
@@ -85,51 +88,61 @@ class Set {
                     return &(node->value);
                 }                
 
-                bool operator!=(const Iterator& another) const {
+                bool operator!=(const iterator& another) const {
                     return node != another.node;
                 }
  
-                bool operator==(const Iterator& another) const {
+                bool operator==(const iterator& another) const {
                     return node == another.node;
                 }
 
-                void operator++() {
-                   node = set_->next(node); 
+                iterator operator++() {
+                    iterator it = *this;
+                    node = set_->next(node); 
+                    return it;
                 }
 
-                void operator++(int) {
+                iterator operator++(int) {
                     node = set_->next(node);
+                    return *this;
                 }
                 
-                void operator--() {
+                iterator operator--() {
+                    iterator it = *this;
                     node = set_->prev(node);
+                    return it;
                 }
                 
-                void operator--(int) {
+                iterator operator--(int) {
                     node = set_->prev(node);
+                    return *this; 
                 }
 
             private:
-                Iterator(Node* node, const Set* set) : node(node), set_(set) {};
+                iterator(Node* node, const Set* set) : node(node), set_(set) {};
                 Node* node = nullptr;
                 const Set* set_;
 
             friend class Set;
         }; 
         
-        Iterator begin() const {
-            return Iterator(min_node(root), this);
+        iterator begin() const {
+            std::cerr << "called begin!\n";
+            return iterator(min_node(root), this);
         }
 
-        Iterator end() const {
-            return Iterator(nullptr, this);
+        iterator end() const {
+            std::cerr << "called end!\n";
+            return iterator(nullptr, this);
         }
 
         bool empty() const {
+            std::cerr << "called empty!\n";
             return (root == nullptr);
         }
 
         size_t size() const {
+            std::cerr << "called size!\n";
             if (root == nullptr) {
                 return 0;
             } else {
@@ -137,12 +150,14 @@ class Set {
             }
         }
         
-        Iterator find(const ValueType& value) const {
-            return Iterator(find(root, value), this);
+        iterator find(const ValueType& value) const {
+            std::cerr << "called find!\n";
+            return iterator(find(root, value), this);
         }
         
-        Iterator lower_bound(const ValueType& value) const {
-            return Iterator(lower_bound(root, value), this);
+        iterator lower_bound(const ValueType& value) const {
+            std::cerr << "called lower bound!\n";
+            return iterator(lower_bound(root, value), this);
         }
 
 
@@ -177,6 +192,7 @@ class Set {
         }
 
         void insert(const ValueType& value) {
+            std::cerr << "inserting!" << std::endl;
             if (root == nullptr) {
                 root = new Node(value);
             } else {
@@ -186,6 +202,7 @@ class Set {
         }
 
         void erase(const ValueType& value) {
+            std::cerr << "erasing!" << std::endl;
             if (root == nullptr) {
                 return;
             }
@@ -198,7 +215,8 @@ class Set {
             }
         }
 
-        void erase(const Iterator& iterator) {
+        void erase(const iterator& iterator) {
+            std::cerr << "erasing_it!" << std::endl;
             if (iterator.node != nullptr) {
                 erase(*iterator);
             }
@@ -347,20 +365,17 @@ class Set {
         }
 
         Node* insert(Node* node, const ValueType& value) {
-            if (value == node->value)
-                return balance(node);
-            if (value > node->value) {
-                if (node->right == nullptr) {
-                    node->right = new Node(value);
-                } else {
-                    node->right = insert(node->right, value);
-                }
-            }
             if (value < node->value) {
                 if (node->left == nullptr) {
                     node->left = new Node(value);
                 } else {
                     node->left = insert(node->left, value);
+                }
+            } else if (node->value < value) {
+                if (node->right == nullptr) {
+                    node->right = new Node(value);
+                } else {
+                    node->right = insert(node->right, value);
                 }
             }
             return balance(node);
@@ -431,60 +446,3 @@ class Set {
             return balance(node);
         } 
 };
-
-int main() {
-    ios_base::sync_with_stdio(false);
-    cin.tie(NULL);
-    int q=0;
-    cin >> q;
-    int cnt=0;
-    Set<int> my_set;
-    for (int i=0; i<q; i++) {
-        char x='1';
-        cin >> x;
-        if (x=='s') {
-            cout << my_set.size() << endl;
-        }
-        if (x=='+') {
-            int value = 0;
-            cin >> value;
-            cnt++;
-            my_set.insert(value);
-        } else if (x=='?') {
-            vector<int> v;
-            if (!my_set.empty()) {
-                auto it = my_set.end();
-                it--;
-                while (it != my_set.begin()) {
-                    v.push_back(*it);
-                    it--;
-                }
-                v.push_back(*it);
-            }
-            reverse(v.begin(), v.end());
-            for (auto s : v) {
-                cout << s << ' ';
-            }
-            cout << endl;
-        } else if (x == '-') {
-            int value = 0;
-            cin >> value;
-            my_set.erase(value);
-        } else if (x == 'x') {
-            my_set.erase(my_set.begin());
-        } else if (x == 'e') {
-            cout << (my_set.empty()) << endl;
-        } else if (x == '=') {
-            int y=0;
-            cin >> y;
-            cout << (my_set.find(y) == my_set.end()) << endl;
-        } else if (x == '>') {
-            int y=0;
-            cin >> y;
-            if (my_set.lower_bound(y) != my_set.end()) {
-                cout << *(my_set.lower_bound(y)) << endl;
-            }
-        }
-    }
-    return 0;
-}
