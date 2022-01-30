@@ -301,13 +301,16 @@ class Set {
             if (node == nullptr) {
                 return nullptr;
             }
-            if (node->left && (!(node->left->value < value))) {
-                return lower_bound(node->left, value);
-            } else if (!(node->value < value)) {
-                return node;
-            } else {
-                return lower_bound(node->right, value); 
-            }
+            Node* result = nullptr;
+            while (node) {
+                if (node->value < value) {
+                    node = node->right;
+                } else {
+                    result = node;
+                    node = node->left;
+                }
+            } 
+            return result;
        } 
 
         Node* rotate_left(Node* node) {
