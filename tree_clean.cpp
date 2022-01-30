@@ -94,19 +94,19 @@ class Set {
                 }
 
                 void operator++() {
-                   node = set_->next_(node); 
+                   node = set_->next(node); 
                 }
 
                 void operator++(int) {
-                    node = set_->next_(node);
+                    node = set_->next(node);
                 }
                 
                 void operator--() {
-                    node = set_->prev_(node);
+                    node = set_->prev(node);
                 }
                 
                 void operator--(int) {
-                    node = set_->prev_(node);
+                    node = set_->prev(node);
                 }
 
             private:
@@ -138,11 +138,11 @@ class Set {
         }
         
         Iterator find(const ValueType& value) const {
-            return Iterator(find_(root, value), this);
+            return Iterator(find(root, value), this);
         }
         
         Iterator lower_bound(const ValueType& value) const {
-            return Iterator(lower_bound_(root, value), this);
+            return Iterator(lower_bound(root, value), this);
         }
 
 
@@ -231,7 +231,7 @@ class Set {
             return node;
         }
         
-        Node* prev_(Node* node) const {
+        Node* prev(Node* node) const {
             if (node == nullptr) {
                 return max_node(root);
             }
@@ -247,7 +247,7 @@ class Set {
             return nullptr;
         }
 
-        Node* next_(Node* node) const {
+        Node* next(Node* node) const {
             if (node->right) {
                 return min_node(node->right);
             }
@@ -266,29 +266,29 @@ class Set {
             return node->color;
         }
             
-        Node* find_(Node* node, const ValueType& value) const {
+        Node* find(Node* node, const ValueType& value) const {
             if (node == nullptr) {
                 return nullptr;
             }
             if (value < node->value) {
-                return find_(node->left, value);
+                return find(node->left, value);
             } else if (node->value < value) {
-                return find_(node->right, value);
+                return find(node->right, value);
             } else {
                 return node;
             }
         }
 
-        Node* lower_bound_(Node* node, const ValueType& value) const {
+        Node* lower_bound(Node* node, const ValueType& value) const {
             if (node == nullptr) {
                 return nullptr;
             }
             if (node->left && (!(node->left->value < value))) {
-                return lower_bound_(node->left, value);
+                return lower_bound(node->left, value);
             } else if (!(node->value < value)) {
                 return node;
             } else {
-                return lower_bound_(node->right, value); 
+                return lower_bound(node->right, value); 
             }
        } 
 
