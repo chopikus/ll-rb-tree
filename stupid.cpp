@@ -27,6 +27,12 @@ int main() {
             cin >> y;
             Set.erase(y);
         }
+        if (x=='s') {
+            cout << Set.size() << endl;
+        }
+        if (x=='e') {
+            cout << Set.empty() << endl;
+        }
     }
     return 0;
 }

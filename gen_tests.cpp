@@ -11,7 +11,11 @@ int main(int argc, char* argv[]) {
     vector<int> v;
     for (int i=0; i<N; i++) {
         int t = rnd.next(0, 100);
-        if (t <= 3) {
+        if (t == 0) {
+            cout << "e" << endl;
+        } else if (t == 1) {
+            cout << "s" << endl;
+        } else if (t <= 5) {
             cout << "?" << endl;
         } else if (t <= 67) {
             int num = rnd.next(-10000000, 10000000);
