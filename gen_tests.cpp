@@ -3,7 +3,7 @@
 
 using namespace std;
 
-const int N = 500000;
+const int N = 50000;
 
 int main(int argc, char* argv[]) {
     registerGen(argc, argv);

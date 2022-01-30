@@ -17,10 +17,10 @@ int main() {
             Set.insert(y);
         }
         if (x=='?') {
-            /*for (auto s : Set) {
+            for (auto s : Set) {
                 cout << s << ' ';
             }
-            cout << endl;*/
+            cout << endl;
         }
         if (x=='-') {
             int y=0;

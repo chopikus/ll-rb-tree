@@ -36,8 +36,6 @@ struct Node {
 
 string textify_color(Color color);
 Color get_color(Node* node);
-Node* rotL(Node* x);
-Node* rotR(Node* y);
 Node* rotate_left(Node* node);
 Node* rotate_right(Node* node);
 Node* flip_colors(Node* node);
@@ -68,33 +66,25 @@ Color get_color(Node* node) {
     return node->color;
 }
 
-Node* rotL(Node* x) {
-    Node* y = x->right;
-    x->right = y->left;
-    y->left = x;
-    return y;
-}
-
-Node* rotR(Node* y) {
-    Node* x = y->left;
-    y->left = x->right;
-    x->right = y;
-    return x;
+Node* rotate_left(Node* node) {
+    assert(node->right != nullptr && node->right->color == RED);
+    Node* r = node->right;
+    node->right = r->left;
+    r->left = node;
+    node = r;
+    node->color = node->left->color;
+    node->left->color = RED;
+    return node;
 }
 
 Node* rotate_right(Node* node) {
     assert(node->left != nullptr && node->left->color == RED);
-    node = rotR(node);
+    Node* l = node->left;
+    node->left = l->right;
+    l->right = node;
+    node = l;
     node->color = node->right->color;
     node->right->color = RED;
-    return node;
-}
-
-Node* rotate_left(Node* node) {
-    assert(node->right != nullptr && node->right->color == RED);
-    node = rotL(node);
-    node->color = node->left->color;
-    node->left->color = RED;
     return node;
 }
 
@@ -220,7 +210,7 @@ Node* remove(Node* node, int value) {
             node = rotate_right(node);
         }
         if (node->value == value && node->right == nullptr) {
-            assert(node->left == nullptr); //why??
+            assert(node->left == nullptr);
             return nullptr;
         }
         if (get_color(node->right) == BLACK && node->right != nullptr 
@@ -313,8 +303,8 @@ int main() {
             tree = insert_wrapper(tree, value);
             //cout << tree->value << endl;
         } else if (x=='?') {
-            //left_right(tree, 0);
-            //cout << endl;
+            left_right(tree, 0);
+            cout << endl;
         } else if (x == '!') {
             ofstream myfile;
             myfile.open ("output.dot");
