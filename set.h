@@ -1,6 +1,8 @@
 #include <iostream>
 #include <cassert>
 #include <stddef.h>
+#include <vector>
+#include <string>
 #include <initializer_list>
 
 template<class ValueType>
@@ -52,24 +54,29 @@ class Set {
             void copy(const Node& another) {
                 *this = another;
                 delete left;
+                left = nullptr;
                 delete right;
-                if (another.left)
-                    left = new Node();
-                if (another.right)
-                    right = new Node();
+                right = nullptr;
 
-                if (left)
+                if (another.left) {
+                    left = new Node();
                     left->copy(*(another.left));
-                if (right)
+                }
+
+                if (another.right) {
+                    right = new Node();
                     right->copy(*(another.right));
+                }
                 this->recalc_parents();
             }
 
             void clear() {
-                if (this->left)
-                    this->left->clear();
-                if (this->right) 
-                    this->right->clear();
+                if (left) {
+                    left->clear();
+                }
+                if (right) {
+                    right->clear();
+                }
                 delete this;
             }
         };
@@ -78,71 +85,103 @@ class Set {
         class iterator {
             public: 
                 iterator() = default;
-                iterator(const iterator& another) = default;
+                iterator(const iterator& another) {
+                    std::cerr << "copying! ";
+                    if (another.node)
+                        std::cerr << "1\n";
+                    else
+                        std::cerr << "0\n";
+                    node = another.node;
+                    set_ = another.set_;
+                    v = another.v;
+                };
                 const ValueType& operator*() const {
+                    if (*this == set_->end()) {
+                        std::cerr << "holy fuck!\n";
+                        for (auto s : v) {
+                            std::cerr << s << std::endl;
+                        }
+                    }
                     assert(*this != set_->end());
                     return node->value;             
                 }
                 
                 const ValueType* operator->() const {
+                    //std::cerr << "called ->\n";
                     return &(node->value);
                 }                
 
                 bool operator!=(const iterator& another) const {
+                    //std::cerr << "called !=\n";
                     return node != another.node;
                 }
  
                 bool operator==(const iterator& another) const {
+                    //std::cerr << "called ==\n";
                     return node == another.node;
                 }
 
                 iterator operator++() {
+                    v.push_back("called ++ (int)");
+                    node = set_->next(node);
+                    return *this;
+                }
+
+                iterator operator++(int) {
+                    v.push_back("called ++");
                     iterator it = *this;
                     node = set_->next(node); 
                     return it;
                 }
-
-                iterator operator++(int) {
-                    node = set_->next(node);
+                
+                iterator operator--() {
+                    v.push_back("called --(int)");
+                    node = set_->prev(node);
                     return *this;
                 }
                 
-                iterator operator--() {
+                iterator operator--(int) { 
+                    v.push_back("called --");
+                    if (node==nullptr)
+                        v.push_back("nullptr");
+                    else
+                        v.push_back("not nullptr");
+                    if (set_->empty()) {
+                        v.push_back("empty");
+                    }
+                    else
+                        v.push_back("notempty");
                     iterator it = *this;
                     node = set_->prev(node);
                     return it;
-                }
-                
-                iterator operator--(int) {
-                    node = set_->prev(node);
-                    return *this; 
                 }
 
             private:
                 iterator(Node* node, const Set* set) : node(node), set_(set) {};
                 Node* node = nullptr;
                 const Set* set_;
+                std::vector<std::string> v;
 
             friend class Set;
         }; 
         
         iterator begin() const {
-            std::cerr << "called begin!\n";
+            //std::cerr << "called begin!\n";
             return iterator(min_node(root), this);
         }
 
         iterator end() const {
-            std::cerr << "called end!\n";
+            //std::cerr << "called end!\n";
             return iterator(nullptr, this);
         }
 
         bool empty() const {
-            std::cerr << "called empty!\n";
+            //std::cerr << "called empty!\n";
             return (root == nullptr);
         }
 
         size_t size() const {
-            std::cerr << "called size!\n";
+            //std::cerr << "called size!\n";
             if (root == nullptr) {
                 return 0;
             } else {
@@ -151,12 +190,12 @@ class Set {
         }
         
         iterator find(const ValueType& value) const {
-            std::cerr << "called find!\n";
+            //std::cerr << "called find!\n";
             return iterator(find(root, value), this);
         }
         
         iterator lower_bound(const ValueType& value) const {
-            std::cerr << "called lower bound!\n";
+            //std::cerr << "called lower bound!\n";
             return iterator(lower_bound(root, value), this);
         }
 
@@ -182,8 +221,11 @@ class Set {
         }
     
         Set& operator=(const Set& another) {
-            if (root)
+            std::cerr << "copying set!\n";
+            if (root) {
                 root->clear();
+                root = nullptr;
+            }
             if (another.root) {
                 root = new Node();
                 root->copy(*(another.root));
@@ -192,7 +234,7 @@ class Set {
         }
 
         void insert(const ValueType& value) {
-            std::cerr << "inserting!" << std::endl;
+            //std::cerr << "inserting!" << std::endl;
             if (root == nullptr) {
                 root = new Node(value);
             } else {
@@ -202,7 +244,7 @@ class Set {
         }
 
         void erase(const ValueType& value) {
-            std::cerr << "erasing!" << std::endl;
+            //std::cerr << "erasing!" << std::endl;
             if (root == nullptr) {
                 return;
             }
@@ -216,7 +258,7 @@ class Set {
         }
 
         void erase(const iterator& iterator) {
-            std::cerr << "erasing_it!" << std::endl;
+            //std::cerr << "erasing_it!" << std::endl;
             if (iterator.node != nullptr) {
                 erase(*iterator);
             }
