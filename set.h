@@ -86,103 +86,69 @@ class Set {
             public: 
                 iterator() = default;
                 iterator(const iterator& another) {
-                    std::cerr << "copying! ";
-                    if (another.node)
-                        std::cerr << "1\n";
-                    else
-                        std::cerr << "0\n";
                     node = another.node;
-                    set_ = another.set_;
-                    v = another.v;
+                    set = another.set;
                 };
                 const ValueType& operator*() const {
-                    if (*this == set_->end()) {
-                        std::cerr << "holy fuck!\n";
-                        for (auto s : v) {
-                            std::cerr << s << std::endl;
-                        }
-                    }
-                    assert(*this != set_->end());
                     return node->value;             
                 }
                 
                 const ValueType* operator->() const {
-                    //std::cerr << "called ->\n";
                     return &(node->value);
                 }                
 
                 bool operator!=(const iterator& another) const {
-                    //std::cerr << "called !=\n";
                     return node != another.node;
                 }
  
                 bool operator==(const iterator& another) const {
-                    //std::cerr << "called ==\n";
                     return node == another.node;
                 }
 
                 iterator operator++() {
-                    v.push_back("called ++ (int)");
-                    node = set_->next(node);
+                    node = set->next(node);
                     return *this;
                 }
 
                 iterator operator++(int) {
-                    v.push_back("called ++");
                     iterator it = *this;
-                    node = set_->next(node); 
+                    node = set->next(node); 
                     return it;
                 }
                 
                 iterator operator--() {
-                    v.push_back("called --(int)");
-                    node = set_->prev(node);
+                    node = set->prev(node);
                     return *this;
                 }
                 
                 iterator operator--(int) { 
-                    v.push_back("called --");
-                    if (node==nullptr)
-                        v.push_back("nullptr");
-                    else
-                        v.push_back("not nullptr");
-                    if (set_->empty()) {
-                        v.push_back("empty");
-                    }
-                    else
-                        v.push_back("notempty");
                     iterator it = *this;
-                    node = set_->prev(node);
+                    node = set->prev(node);
                     return it;
                 }
 
             private:
-                iterator(Node* node, const Set* set) : node(node), set_(set) {};
+                iterator(Node* node, const Set* set) : node(node), set(set) {};
                 Node* node = nullptr;
-                const Set* set_;
-                std::vector<std::string> v;
+                const Set* set;
 
             friend class Set;
         }; 
         
         iterator begin() const {
-            //std::cerr << "called begin!\n";
             return iterator(min_node(root), this);
         }
 
         iterator end() const {
-            //std::cerr << "called end!\n";
             return iterator(nullptr, this);
         }
 
         bool empty() const {
-            //std::cerr << "called empty!\n";
-            return (root == nullptr);
+            return (!root);
         }
 
         size_t size() const {
-            //std::cerr << "called size!\n";
-            if (root == nullptr) {
+            if (!root) {
                 return 0;
             } else {
                 return root->size;
@@ -190,12 +156,10 @@ class Set {
         }
         
         iterator find(const ValueType& value) const {
-            //std::cerr << "called find!\n";
             return iterator(find(root, value), this);
         }
         
         iterator lower_bound(const ValueType& value) const {
-            //std::cerr << "called lower bound!\n";
             return iterator(lower_bound(root, value), this);
         }
 
@@ -221,7 +185,9 @@ class Set {
         }
     
         Set& operator=(const Set& another) {
-            std::cerr << "copying set!\n";
+            if (root == another.root) {
+                return *this;
+            }
             if (root) {
                 root->clear();
                 root = nullptr;
@@ -234,8 +200,7 @@ class Set {
         }
 
         void insert(const ValueType& value) {
-            //std::cerr << "inserting!" << std::endl;
-            if (root == nullptr) {
+            if (!root) {
                 root = new Node(value);
             } else {
                 root = insert(root, value);
@@ -244,22 +209,21 @@ class Set {
         }
 
         void erase(const ValueType& value) {
-            //std::cerr << "erasing!" << std::endl;
-            if (root == nullptr) {
+            if (!root) {
                 return;
             }
-            if (get_color(root->left) == BLACK && get_color(root->right) == BLACK) {
+            if (get_color(root->left) == BLACK && 
+                get_color(root->right) == BLACK) {
                 root->color = RED;
             }
             root = erase(root, value);
-            if (root != nullptr) {
+            if (root) {
                 root->color = BLACK;
             }
         }
 
         void erase(const iterator& iterator) {
-            //std::cerr << "erasing_it!" << std::endl;
-            if (iterator.node != nullptr) {
+            if (iterator.node) {
                 erase(*iterator);
             }
         }
@@ -274,25 +238,25 @@ class Set {
         Node* root = nullptr; 
 
         Node* min_node(Node* node) const {
-            if (node == nullptr)
+            if (!node)
                 return nullptr;
-            while (node->left != nullptr) {
+            while (node->left) {
                 node = node->left;
             }
             return node;
         }
 
         Node* max_node(Node* node) const {
-            if (node == nullptr)
+            if (!node)
                 return nullptr;
-            while (node->right != nullptr) {
+            while (node->right) {
                 node = node->right;
             }
             return node;
         }
         
         Node* prev(Node* node) const {
-            if (node == nullptr) {
+            if (!node) {
                 return max_node(root);
             }
             if (node -> left) {
@@ -321,13 +285,13 @@ class Set {
         }
 
         Color get_color(Node* node) const {
-            if (node==nullptr)
+            if (!node)
                 return BLACK;
             return node->color;
         }
             
         Node* find(Node* node, const ValueType& value) const {
-            if (node == nullptr) {
+            if (!node) {
                 return nullptr;
             }
             if (value < node->value) {
@@ -340,7 +304,7 @@ class Set {
         }
 
         Node* lower_bound(Node* node, const ValueType& value) const {
-            if (node == nullptr) {
+            if (!node) {
                 return nullptr;
             }
             Node* result = nullptr;
@@ -410,25 +374,20 @@ class Set {
         }
 
         Node* insert(Node* node, const ValueType& value) {
+            if (!node) {
+                return new Node(value);
+            }
             if (value < node->value) {
-                if (node->left == nullptr) {
-                    node->left = new Node(value);
-                } else {
-                    node->left = insert(node->left, value);
-                }
+                node->left = insert(node->left, value);
             } else if (node->value < value) {
-                if (node->right == nullptr) {
-                    node->right = new Node(value);
-                } else {
-                    node->right = insert(node->right, value);
-                }
+                node->right = insert(node->right, value);
             }
             return balance(node);
         }
 
         Node* move_red_left(Node* node) {
             flip_colors(node);
-            if (node->right != nullptr && get_color(node->right->left) == RED) {
+            if (node->right && get_color(node->right->left) == RED) {
                 node->right = rotate_right(node->right);
                 node = rotate_left(node);
                 flip_colors(node);
@@ -438,7 +397,7 @@ class Set {
 
         Node* move_red_right(Node* node) {
             flip_colors(node);
-            if (node->left != nullptr && get_color(node->left->left) == RED) {
+            if (node->left && get_color(node->left->left) == RED) {
                 node = rotate_right(node);
                 flip_colors(node);
             }
@@ -446,14 +405,16 @@ class Set {
         }
 
         Node* erase_min(Node* node) {
-            if (node->left == nullptr) {
+            if (!node->left) {
                 delete node;
                 return nullptr;
             }
-            if (get_color(node->left) == BLACK && node->left != nullptr 
+
+            if (get_color(node->left) == BLACK && node->left 
                     && get_color(node->left->left) == BLACK) {
                 node = move_red_left(node);       
             }
+
             node->left = erase_min(node->left);
             return balance(node);
         }
@@ -463,8 +424,8 @@ class Set {
                 return nullptr;
             }
             if (value < node->value) {
-                if (get_color(node->left) == BLACK && node->left != nullptr 
-                        && get_color(node->left->left) == BLACK) {
+                if (get_color(node->left) == BLACK && node->left
+                          && get_color(node->left->left) == BLACK) {
                     node = move_red_left(node);
                 }
                 node->left = erase(node->left, value);
@@ -472,14 +433,18 @@ class Set {
                 if (get_color(node->left) == RED) {
                     node = rotate_right(node);
                 }
-                if (!(node->value < value) && !(value < node->value) && node->right == nullptr) {
+
+                if (!(node->value < value) && !(value < node->value) 
+                                                    && !node->right) {
                     delete node;
                     return nullptr;
                 }
-                if (get_color(node->right) == BLACK && node->right != nullptr 
-                        && get_color(node->right->left) == BLACK) {
+
+                if (get_color(node->right) == BLACK && node->right 
+                          && get_color(node->right->left) == BLACK) {
                     node = move_red_right(node);
                 }
+
                 if (node->value < value) {
                     node->right = erase(node->right, value);
                 } else {
