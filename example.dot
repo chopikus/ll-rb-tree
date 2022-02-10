@@ -1,7 +1,0 @@
-digraph g {
-    A [label = "100", color=black];
-    C [label = "200", color=red];
-    B [label = "50", color=red];
-    A -> B
-    A -> C
-}
