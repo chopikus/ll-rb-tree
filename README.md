@@ -51,7 +51,7 @@ The usage is very similar to `std::set`.
 *  `Set<ValueType>::iterator end()` - returns iterator to past-the-end element of `Set`
 
 Avaliable `Set<ValueType>::iterator` methods:
-* `++`, `--` - changing iterator's element to next/previous;
+* `++`, `--` - changing iterator's element to it's next/previous;
 * `*` - returns the element correspondant to the iterator;
 * `->` - returns a reference to the element correspondant to the iterator.
 * `==`, `!=` - comparing iterators.
@@ -106,22 +106,24 @@ int main() {
 
 As you can see, the usage is very similar to the `std::set`.
 
-### Testing
+### Testing/Running the example
 1. Clone this repository -- `git clone https://github.com/chopikus/ll-rb-tree.git`.
 2. Open the cloned folder -- `cd ll-rb-tree`.
 3. Create new folder for building tests, and open it -- `mkdir build && cd build`.
 4. Run the following command: `cmake .. && make tests`.
+4.1. You can also build the example using `cmake .. && make`. Then the executable called `usage_example` should appear.
 
 All tests are written in `tests/tests.cpp` file.
 
 ## File structure
-TODO 
+* `usage_example.cpp` - example file;
+* `tests/test.cpp` - all tests are written here;
+* `src/set.h` - the actual implementation of a data structure.
 ## Benchmarks
-### Insertion
-
-### Deletion
+TODO
 
 ## How does it work?
 TODO
 
 ## Contrubuting
+TODO
