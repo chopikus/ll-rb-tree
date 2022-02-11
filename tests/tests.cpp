@@ -4,8 +4,8 @@
 #include <set>
 #include "testlib.h"
 
-const int QUERIES = 10000;
-const int A_LOT_OF_QUERIES = 100000;
+const int QUERIES = 100000;
+const int A_LOT_OF_QUERIES = 1000000;
 const int MAX_NUMBER = 1000000000;
 
 TEST(Set, InsertFindSimple) {
@@ -15,7 +15,7 @@ TEST(Set, InsertFindSimple) {
     EXPECT_EQ(s.find(2), s.end());
 }
 
-/*TEST(Set, InsertFindAdvanced) {
+TEST(Set, InsertFindAdvanced) {
     std::set<int> std_set;
     Set<int> my_set;
     int n = QUERIES;
@@ -228,6 +228,12 @@ TEST(Set, EmptySet) {
     EXPECT_EQ(z.begin(), z.end());
 }
 
+TEST(Set, CopySet) {
+    Set<int> q{1, 2, 3};
+    q = q;
+    EXPECT_EQ(q.size(), 3);
+}
+
 TEST(Set, IteratorsSecond) {
     std::set<int> std_set;
     Set<int> my;
@@ -256,4 +262,11 @@ TEST(Set, IteratorsSecond) {
         std_iter++;
     }
     ASSERT_EQ(std_iter, std_set.end());
-}*/
+}
+
+int main(int argc, char** argv) {
+    registerGen(argc, argv, 1);
+    ::testing::InitGoogleTest(&argc, argv);
+    return RUN_ALL_TESTS();
+}
+
