@@ -1,15 +1,18 @@
-# `ll-rb-tree` 🌳
-`ll-rb-tree` is an implementation of a data structure called "Left-leaning Red-black Tree". 
+<div align="center">
+  <h1> Left-leaning Red-black Tree 🌳 </h1>
 
-The structure resembles a usual Red-Black tree, while aiming at reducing and simplifying the codebase.
-
+This repository aims at making the best implementation of the [LLRB-tree data structure](https://sedgewick.io/wp-content/themes/sedgewick/papers/2008LLRB.pdf).
+  
+The data structure resembles a usual Red-Black tree, remade with simplicity in mind.
+  
 Unlike lots of another implementations ([here](https://www.geeksforgeeks.org/left-leaning-red-black-tree-insertion/) and [here, in russian](http://neerc.ifmo.ru/wiki/index.php?title=%D0%9B%D0%B5%D0%B2%D0%BE%D1%81%D1%82%D0%BE%D1%80%D0%BE%D0%BD%D0%BD%D0%B8%D0%B5_%D0%BA%D1%80%D0%B0%D1%81%D0%BD%D0%BE-%D1%87%D1%91%D1%80%D0%BD%D1%8B%D0%B5_%D0%B4%D0%B5%D1%80%D0%B5%D0%B2%D1%8C%D1%8F) ), `ll-rb-tree` 🌳 actually supports deletion.
 
-The codebase was reviewed and checked in the testing system.
+The codebase is thoroughly reviewed and tested using the [gtest](https://github.com/google/googletest) library.
+</div>
 
 ## Features
 * `insert`;
-* `erase`;
+* `erase` (__and__ `eraseMin` __and__ `eraseMax`);
 * `lower_bound`;
 * `find`;
 * iterators, `begin()`, `end()`;
@@ -34,6 +37,8 @@ All needed implementation is written in the `src/set.h` file.
 3. Create new folder for building tests, and open it -- `mkdir build && cd build`.
 4. Run the following command: `cmake .. && make tests`.
 
+All tests are written in `tests/tests.cpp` file.
+
 ## Benchmarks
 ### Insertion
 
@@ -41,3 +46,5 @@ All needed implementation is written in the `src/set.h` file.
 
 ## How does it work?
 TODO
+
+## Contrubuting
