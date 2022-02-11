@@ -39,5 +39,5 @@ All needed implementation is written in the `src/set.h` file.
 
 ### Deletion
 
-## How it works?
+## How does it work?
 TODO
