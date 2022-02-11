@@ -28,7 +28,7 @@ The usage is very similar to `std::set`.
 
 ### Avaliable classes
 
-* `Set<ValueType>` - set that stores `ValueType` elements;
+* `Set<ValueType>` - set that stores `ValueType` elements. `ValueType` should be comparable by operator `<`.
 * `Set<ValueType>::iterator` - set iterator, can be got using `begin()`, `end()`, `find(x)`, `lower_bound(x)`.
 
 ### Avaliable functions and constructors
