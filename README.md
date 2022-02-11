@@ -119,11 +119,9 @@ All tests are written in `tests/tests.cpp` file.
 * `usage_example.cpp` - example file;
 * `tests/test.cpp` - all tests are written here;
 * `src/set.h` - the actual implementation of a data structure.
+
 ## Benchmarks
 TODO
 
-## How does it work?
-TODO
-
-## Contrubuting
-TODO
+### Contrubuting
+Pull requests and working on issues will be much appreciated.
