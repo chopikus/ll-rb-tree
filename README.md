@@ -39,6 +39,8 @@ All needed implementation is written in the `src/set.h` file.
 
 All tests are written in `tests/tests.cpp` file.
 
+## File structure
+TODO 
 ## Benchmarks
 ### Insertion
 
