@@ -13,27 +13,13 @@ int main() {
     for (int i=0; i<q; i++) {
         char x='1';
         cin >> x;
-        if (x=='s') {
-            cout << my_set.size() << endl;
-        }
         if (x=='+') {
             int value = 0;
             cin >> value;
             cnt++;
             my_set.insert(value);
         } else if (x=='?') {
-            vector<int> v;
-            if (!my_set.empty()) {
-                auto it = my_set.end();
-                it--;
-                while (it != my_set.begin()) {
-                    v.push_back(*it);
-                    it--;
-                }
-                v.push_back(*it);
-            }
-            reverse(v.begin(), v.end());
-            for (auto s : v) {
+            for (auto s : my_set) {
                 cout << s << ' ';
             }
             cout << endl;
@@ -41,14 +27,6 @@ int main() {
             int value = 0;
             cin >> value;
             my_set.erase(value);
-        } else if (x == 'x') {
-            my_set.erase(my_set.begin());
-        } else if (x == 'e') {
-            cout << (my_set.empty()) << endl;
-        } else if (x == '=') {
-            int y=0;
-            cin >> y;
-            cout << (my_set.find(y) == my_set.end()) << endl;
         } else if (x == '>') {
             int y=0;
             cin >> y;
