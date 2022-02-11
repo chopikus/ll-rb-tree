@@ -1,8 +1,5 @@
 #include <iostream>
-#include <cassert>
 #include <stddef.h>
-#include <vector>
-#include <string>
 #include <initializer_list>
 
 template<class ValueType>
