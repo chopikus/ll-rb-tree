@@ -1,4 +1,4 @@
-# `ll-rb-tree`  
+# `ll-rb-tree`
 `ll-rb-tree` is an implementation of a data structure called "Left-leaning Red-black Tree". 
 
 The structure resembles a usual Red-Black tree, while aiming at reducing and simplifying the codebase.
