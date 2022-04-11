@@ -18,7 +18,7 @@ class Set {
             size_t size = 1;
             friend class Set;
 
-            Node() {}
+            Node() {} 
 
             Node(const ValueType& value): value(value) {}
             Node(const Node& another) {
