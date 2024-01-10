@@ -1,87 +1,60 @@
-#include <iostream>
-#include <stddef.h>
+#pragma once
+
 #include <initializer_list>
+#include <memory>
+
+template <typename ValueType>
+class Node {
+    public:
+    enum Color : bool { BLACK = false, RED = true };
+
+    ValueType value;
+    Color color;
+    size_t size;
+
+    std::unique_ptr<Node> left;
+    std::unique_ptr<Node> right;
+    Node<ValueType>* parent{nullptr};
+
+    Node(const ValueType& v): value{v} {}
+
+    Node(const Node<ValueType>& another) : 
+        value{another.value},
+        color{another.color},
+        size{another.size} {
+        if (another.left) {
+            left = std::make_unique<Node<ValueType>>(*another.left);
+            left->parent = this;
+        }
+        if (another.right) {
+            right = std::make_unique<Node<ValueType>>(*another.right);
+            right->parent = this;
+        }
+    }
+
+    Node<ValueType>& operator=(Node<ValueType> other) {
+        swap(*this, other);
+        return *this;
+    }
+
+    ~Node() = default;
+
+    friend void swap(Node<ValueType>& first, Node<ValueType>& second) noexcept {
+        using std::swap;
+        swap(first.value, second.value);
+        swap(first.color, second.color);
+        swap(first.size, second.size);
+        swap(first.left, second.left);
+        swap(first.right, second.right);
+        swap(first.parent, second.parent);
+    }
+};
 
 template<class ValueType>
-class Set { 
-    private:
-        using Color = bool;
-        static const Color BLACK = false;
-        static const Color RED = true;
-
-        class Node {
-            Node* left = nullptr;
-            Node* right = nullptr;
-            Node* parent = nullptr;
-            ValueType value;
-            Color color = RED;
-            size_t size = 1;
-            friend class Set;
-
-            Node() {}
-
-            Node(const ValueType& value): value(value) {}
-            Node(const Node& another) {
-                *this = another;
-            }
-    
-            Node& operator=(const Node& another) {
-                value = another.value;
-                color = another.color;
-                size = another.size;
-                return *this;
-            }
-            
-            void recalc_size() {
-                size = 1;
-                if (left)
-                    size += left->size;
-                if (right)
-                    size += right->size;
-            }
-
-           void recalc_parents() {
-                parent = nullptr;
-                if (left)
-                    left->parent = this;
-                if (right)
-                    right->parent = this;
-            }
-
-            void copy(const Node& another) {
-                *this = another;
-                delete left;
-                left = nullptr;
-                delete right;
-                right = nullptr;
-
-                if (another.left) {
-                    left = new Node();
-                    left->copy(*(another.left));
-                }
-
-                if (another.right) {
-                    right = new Node();
-                    right->copy(*(another.right));
-                }
-                this->recalc_parents();
-            }
-
-            void clear() {
-                if (left) {
-                    left->clear();
-                }
-                if (right) {
-                    right->clear();
-                }
-                delete this;
-            }
-        };
-         
+class Set {
     public:
         class iterator {
             public: 
-                iterator() = default;
                 iterator(const iterator& another) {
                     node = another.node;
                     set = another.set;
@@ -125,8 +98,8 @@ class Set {
                 }
 
             private:
-                iterator(Node* node, const Set* set) : node(node), set(set) {};
-                Node* node = nullptr;
+                iterator(Node<ValueType>* node, const Set<ValueType>* set) : node(node), set(set) {};
+                Node<ValueType>* node{nullptr};
                 const Set* set;
 
             friend class Set;
@@ -178,44 +151,42 @@ class Set {
         }
         
         Set(const Set& another) {
-            *this = another;     
+            if (another.root) {
+                root = new Node<ValueType>(*another.root);
+            } else {
+                root = nullptr;
+            }
         }
     
         Set& operator=(const Set& another) {
-            if (root == another.root) {
-                return *this;
-            }
-            if (root) {
-                root->clear();
-                root = nullptr;
-            }
             if (another.root) {
-                root = new Node();
-                root->copy(*(another.root));
+                root = new Node<ValueType>(*another.root);
+            } else {
+                root = nullptr;
             }
             return *this;
         }
 
         void insert(const ValueType& value) {
             if (!root) {
-                root = new Node(value);
+                root = new Node<ValueType>(value);
             } else {
                 root = insert(root, value);
             }
-            root->color = BLACK;
+            root->color = Color::BLACK;
         }
 
         void erase(const ValueType& value) {
             if (!root) {
                 return;
             }
-            if (get_color(root->left) == BLACK && 
-                get_color(root->right) == BLACK) {
-                root->color = RED;
+            if (get_color((root->left).get()) == Color::BLACK && 
+                get_color((root->right).get()) == Color::BLACK) {
+                root->color = Color::RED;
             }
             root = erase(root, value);
             if (root) {
-                root->color = BLACK;
+                root->color = Color::BLACK;
             }
         }
 
@@ -225,42 +196,40 @@ class Set {
             }
         }
 
-        ~Set() {
-            if (root)
-                root->clear();
-            root = nullptr;
-        } 
+        ~Set() = default;
 
     private:
-        Node* root = nullptr; 
+        using Color = typename Node<ValueType>::Color;
 
-        Node* min_node(Node* node) const {
+        Node<ValueType>* root{nullptr};
+
+        Node<ValueType>* min_node(Node<ValueType>* node) const {
             if (!node)
                 return nullptr;
-            while (node->left) {
-                node = node->left;
+            while ((node->left).get()) {
+                node = (node->left).get();
             }
             return node;
         }
 
-        Node* max_node(Node* node) const {
+        Node<ValueType>* max_node(Node<ValueType>* node) const {
             if (!node)
                 return nullptr;
-            while (node->right) {
-                node = node->right;
+            while ((node->right).get()) {
+                node = (node->right).get();
             }
             return node;
         }
         
-        Node* prev(Node* node) const {
+        Node<ValueType>* prev(Node<ValueType>* node) const {
             if (!node) {
                 return max_node(root);
             }
             if (node -> left) {
-                return max_node(node->left);
+                return max_node((node->left).get());
             }
             while (node -> parent) {
-                if (node -> parent -> right == node) {
+                if ((node -> parent -> right).get() == node) {
                     return node->parent;
                 }
                 node = node->parent;
@@ -268,12 +237,12 @@ class Set {
             return nullptr;
         }
 
-        Node* next(Node* node) const {
-            if (node->right) {
-                return min_node(node->right);
+        Node<ValueType>* next(Node<ValueType>* node) const {
+            if ((node->right).get()) {
+                return min_node((node->right).get());
             }
             while (node->parent) {
-                if (node->parent->left == node) {
+                if ((node->parent->left).get() == node) {
                     return node->parent;
                 }
                 node = node->parent;
@@ -281,44 +250,44 @@ class Set {
             return nullptr;
         }
 
-        Color get_color(Node* node) const {
+        Color get_color(Node<ValueType>* node) const {
             if (!node)
-                return BLACK;
+                return Color::BLACK;
             return node->color;
         }
             
-        Node* find(Node* node, const ValueType& value) const {
+        Node<ValueType>* find(Node<ValueType>* node, const ValueType& value) const {
             if (!node) {
                 return nullptr;
             }
             if (value < node->value) {
-                return find(node->left, value);
+                return find((node->left).get(), value);
             } else if (node->value < value) {
-                return find(node->right, value);
+                return find((node->right).get(), value);
             } else {
                 return node;
             }
         }
 
-        Node* lower_bound(Node* node, const ValueType& value) const {
+        Node<ValueType>* lower_bound(Node<ValueType>* node, const ValueType& value) const {
             if (!node) {
                 return nullptr;
             }
-            Node* result = nullptr;
+            Node<ValueType>* result = nullptr;
             while (node) {
                 if (node->value < value) {
-                    node = node->right;
+                    node = (node->right).get();
                 } else {
                     result = node;
-                    node = node->left;
+                    node = (node->left).get();
                 }
             } 
             return result;
        } 
 
-        Node* rotate_left(Node* node) {
-            Node* r = node->right;
-            node->right = r->left;
+        Node<ValueType>* rotate_left(Node<ValueType>* node) {
+            Node<ValueType>* r = (node->right).get();
+            (node->right).get() = r->left;
             r->left = node;
 
             r->left->recalc_size();
@@ -328,13 +297,13 @@ class Set {
             r->recalc_parents();
 
             r->color = r->left->color;
-            r->left->color = RED;
+            r->left->color = Color::RED;
             return r;
         }
 
-        Node* rotate_right(Node* node) {
-            Node* l = node->left;
-            node->left = l->right;
+        Node<ValueType>* rotate_right(Node<ValueType>* node) {
+            Node<ValueType>* l = (node->left).get();
+            (node->left).get() = l->right;
             l->right = node;
 
             l->right->recalc_size();
@@ -344,25 +313,25 @@ class Set {
             l->recalc_parents();
 
             l->color = l->right->color;
-            l->right->color = RED;
+            l->right->color = Color::RED;
             return l;
         }
 
-        Node* flip_colors(Node* node) {
+        Node<ValueType>* flip_colors(Node<ValueType>* node) {
             node->color = !node->color;
-            node->left->color = !node->left->color;
-            node->right->color = !node->right->color;
+            node->left->color = !(node->left)->color;
+            node->right->color = !(node->right)->color;
             return node;
         }
 
-        Node* balance(Node* node) {
-            if (get_color(node->left)==BLACK && get_color(node->right)==RED) {
+        Node<ValueType>* balance(Node<ValueType>* node) {
+            if (get_color((node->left).get())==Color::BLACK && get_color((node->right).get())==Color::RED) {
                 node = rotate_left(node);
             }
-            if (get_color(node->left)==RED && get_color(node->left->left)==RED) {
+            if (get_color((node->left).get())==Color::RED && get_color((node->left).get()->left)==Color::RED) {
                 node = rotate_right(node);
             }
-            if (get_color(node->left)==RED && get_color(node->right)==RED) {
+            if (get_color((node->left).get())==Color::RED && get_color((node->right).get())==Color::RED) {
                 node = flip_colors(node);
             } 
             node->recalc_size();
@@ -370,84 +339,84 @@ class Set {
             return node;
         }
 
-        Node* insert(Node* node, const ValueType& value) {
+        Node<ValueType>* insert(Node<ValueType>* node, const ValueType& value) {
             if (!node) {
                 return new Node(value);
             }
             if (value < node->value) {
-                node->left = insert(node->left, value);
+                node->left.reset(insert((node->left).get(), value));
             } else if (node->value < value) {
-                node->right = insert(node->right, value);
+                node->right.reset(insert((node->right).get(), value));
             }
             return balance(node);
         }
 
-        Node* move_red_left(Node* node) {
+        Node<ValueType>* move_red_left(Node<ValueType>* node) {
             flip_colors(node);
-            if (node->right && get_color(node->right->left) == RED) {
-                node->right = rotate_right(node->right);
+            if ((node->right).get() && get_color((node->right).get()->left) == Color::RED) {
+                (node->right).get() = rotate_right((node->right).get());
                 node = rotate_left(node);
                 flip_colors(node);
             }
             return node;
         }
 
-        Node* move_red_right(Node* node) {
+        Node<ValueType>* move_red_right(Node<ValueType>* node) {
             flip_colors(node);
-            if (node->left && get_color(node->left->left) == RED) {
+            if ((node->left).get() && get_color((node->left).get()->left) == Color::RED) {
                 node = rotate_right(node);
                 flip_colors(node);
             }
             return node;
         }
 
-        Node* erase_min(Node* node) {
-            if (!node->left) {
+        Node<ValueType>* erase_min(Node<ValueType>* node) {
+            if (!(node->left).get()) {
                 delete node;
                 return nullptr;
             }
 
-            if (get_color(node->left) == BLACK && node->left 
-                    && get_color(node->left->left) == BLACK) {
+            if (get_color((node->left).get()) == Color::BLACK && (node->left).get() 
+                    && get_color((node->left).get()->left) == Color::BLACK) {
                 node = move_red_left(node);       
             }
 
-            node->left = erase_min(node->left);
+            (node->left).get() = erase_min((node->left).get());
             return balance(node);
         }
 
-        Node* erase(Node* node, const ValueType& value) {
+        Node<ValueType>* erase(Node<ValueType>* node, const ValueType& value) {
             if (node == nullptr) {
                 return nullptr;
             }
             if (value < node->value) {
-                if (get_color(node->left) == BLACK && node->left
-                          && get_color(node->left->left) == BLACK) {
+                if (get_color((node->left).get()) == Color::BLACK && (node->left).get()
+                          && get_color(((node->left).get()->left).get()) == Color::BLACK) {
                     node = move_red_left(node);
                 }
-                node->left = erase(node->left, value);
+                (node->left).get() = erase((node->left).get(), value);
             } else {
-                if (get_color(node->left) == RED) {
+                if (get_color((node->left).get()) == Color::RED) {
                     node = rotate_right(node);
                 }
 
                 if (!(node->value < value) && !(value < node->value) 
-                                                    && !node->right) {
+                                                    && !(node->right).get()) {
                     delete node;
                     return nullptr;
                 }
 
-                if (get_color(node->right) == BLACK && node->right 
-                          && get_color(node->right->left) == BLACK) {
+                if (get_color((node->right).get()) == Color::BLACK && (node->right).get() 
+                          && get_color(((node->right).get()->left).get()) == Color::BLACK) {
                     node = move_red_right(node);
                 }
 
                 if (node->value < value) {
-                    node->right = erase(node->right, value);
+                    (node->right).get() = erase((node->right).get(), value);
                 } else {
-                    Node* min_right_node = min_node(node->right);
+                    Node<ValueType>* min_right_node = min_node((node->right).get());
                     node->value = min_right_node->value;
-                    node->right = erase_min(node->right); 
+                    node->right.reset(erase_min((node->right).get())); 
                 }
             }
             return balance(node);
