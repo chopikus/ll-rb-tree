@@ -1,7 +1,7 @@
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.10)
 project(ll-rb-tree)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -Wall -O2 -fsanitize=address")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -g -Wall -O2 -fsanitize=address")
 
 add_executable(USAGE_EXAMPLE usage_example.cpp)
 set_target_properties(USAGE_EXAMPLE PROPERTIES OUTPUT_NAME "usage_example")
