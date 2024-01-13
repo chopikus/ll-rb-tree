@@ -4,7 +4,23 @@
 #include <memory>
 #include <iostream>
 
-template <typename ValueType>
+namespace llrb {
+
+template<typename T>
+concept Comparable =
+    requires(T a, T b) {
+        { a < b } -> std::convertible_to<bool>;
+    };
+
+
+template<Comparable ValueType>
+class Node;
+template<Comparable ValueType>
+class Iterator;
+template<Comparable ValueType>
+class Set;
+
+template <Comparable ValueType>
 class Node {
     public:
     enum Color : bool { BLACK = false, RED = true };
@@ -13,8 +29,8 @@ class Node {
     Color color;
     size_t size;
 
-    std::unique_ptr<Node> left;
-    std::unique_ptr<Node> right;
+    std::unique_ptr<Node> left{nullptr};
+    std::unique_ptr<Node> right{nullptr};
     Node<ValueType>* parent{nullptr};
 
     Node(const ValueType& v): value{v}, color{Color::RED} {}
@@ -74,39 +90,184 @@ class Node {
     }
 };
 
+template <Comparable ValueType>
+class Iterator {
+    public: 
+        Iterator() = default;
+        Iterator(const Iterator& another) {
+            node = another.node;
+            set = another.set;
+        };
+        const ValueType& operator*() const {
+            return node->value;             
+        }
+        
+        const ValueType* operator->() const {
+            return &(node->value);
+        }                
 
+        bool operator!=(const Iterator& another) const {
+            return node != another.node;
+        }
 
-template<class ValueType>
+        bool operator==(const Iterator& another) const {
+            return node == another.node;
+        }
+
+        Iterator operator++() {
+            node = set->next(node);
+            return *this;
+        }
+
+        Iterator operator++(int) {
+            Iterator it = *this;
+            node = set->next(node); 
+            return it;
+        }
+        
+        Iterator operator--() {
+            node = set->prev(node);
+            return *this;
+        }
+        
+        Iterator operator--(int) { 
+            Iterator it = *this;
+            node = set->prev(node);
+            return it;
+        }
+
+    private:
+        Iterator(Node<ValueType>* node, const Set<ValueType>* set) : node(node), set(set) {};
+        Node<ValueType>* node{nullptr};
+        const Set<ValueType>* set{nullptr};
+
+    friend class Set<ValueType>;
+};
+
+template<Comparable ValueType>
 class Set {
-    public:
-        Set() {}
-        ~Set() = default;
-
+    private:
         using Color = typename Node<ValueType>::Color;
         using NodePtr = std::unique_ptr<Node<ValueType>>;
         using RawNode = Node<ValueType>*;
+    public:
+        using iterator = Iterator<ValueType>;
+
+        Set() {};
+        
+        Set(const Set<ValueType>& another) {
+            if (another.root)
+                root = std::make_unique<Node<ValueType>>(*another.root);
+        }
+
+        Set& operator=(const Set<ValueType>& another) {
+            if (another.root)
+                root = std::make_unique<Node<ValueType>>(*another.root);
+            return *this;
+        }
+
+        ~Set() = default;
         
         void insert(const ValueType& value) {
             root = insert(std::move(root), value);
             root->color = Color::BLACK;
         }
+
+        void erase(const ValueType& value) {
+            if (!root) {
+                return;
+            }
+            if (!is_red(root->l()) && !is_red(root->r())) {
+                root->color = Color::RED;
+            }
+            root = erase(std::move(root), value);
+            if (root)
+                root->color = Color::BLACK;
+        }
         
-        RawNode find_node(const ValueType& value) {
-            return find(root.get(), value);
+        iterator begin() const {
+            return iterator(min_node(root.get()), this);
         }
 
+        iterator end() const {
+            return iterator(nullptr, this);
+        }
+
+        bool empty() const {
+            return (!root);
+        }
+
+        size_t size() const {
+            if (!root) {
+                return 0;
+            } else {
+                return root->size;
+            }
+        }
+
+        iterator find(const ValueType& value) const {
+            return iterator(find(root.get(), value), this);
+        }
+
+        iterator lower_bound(const ValueType& value) const {
+            return iterator(lower_bound(root.get(), value), this);
+        }
+
+    private:
         NodePtr root{nullptr};
+
         inline bool is_red(RawNode node) const {
             if (!node)
                 return false;
             return node->color == Color::RED;
         }
 
-        NodePtr min_node(NodePtr node) const;
-        NodePtr max_node(NodePtr node) const;
-        NodePtr prev(NodePtr node) const;
-        NodePtr next(NodePtr node) const;
+        RawNode min_node(RawNode node) const {
+            if (!node)
+                return nullptr;
+            while (node->l()) {
+                node = node->l();
+            }
+            return node;
+        }
 
+        RawNode max_node(RawNode node) const {
+            if (!node)
+                return nullptr;
+            while (node->r()) {
+                node = node->r();
+            }
+            return node;
+        }
+
+        RawNode prev(RawNode node) const {
+            if (!node) {
+                return max_node(root.get());
+            }
+            if (node -> left) {
+                return max_node(node->l());
+            }
+            while (node -> parent) {
+                if (node -> parent -> r() == node) {
+                    return node->parent;
+                }
+                node = node->parent;
+            }
+            return nullptr;
+        }
+        RawNode next(RawNode node) const {
+            if (node->r()) {
+                return min_node(node->r());
+            }
+            while (node->parent) {
+                if (node->parent->l() == node) {
+                    return node->parent;
+                }
+                node = node->parent;
+            }
+            return nullptr;
+        }
+        
         RawNode find(RawNode node, const ValueType& value) const {
             while (node) {
                 if (value < node->value) {
@@ -120,8 +281,23 @@ class Set {
             return nullptr;
         }
 
-        NodePtr lower_bound(NodePtr node, const ValueType& value) const;
+        RawNode lower_bound(RawNode node, const ValueType& value) const {
+            if (!node) {
+                return nullptr;
+            }
+            RawNode result{nullptr};
+            while (node) {
+                if (node->value < value) {
+                    node = node->r();
+                } else {
+                    result = node;
+                    node = node->l();
+                }
+            } 
+            return result;
+        }
 
+        [[nodiscard]]
         NodePtr rotate_left(NodePtr a) {
             /* Assuming a and b exist. */
             NodePtr b{std::move(a->right)};
@@ -141,6 +317,7 @@ class Set {
             return b;
         };
 
+        [[nodiscard]]
         NodePtr rotate_right(NodePtr b) {
             /* Assuming a and b exist. */
             NodePtr a{std::move(b->left)};
@@ -161,6 +338,7 @@ class Set {
             return a;
         }
 
+        [[nodiscard]]
         NodePtr flip_colors(NodePtr node) {
             /* Assuming that children exist. */
             auto flip_color = [](Color color) -> Color {
@@ -174,13 +352,27 @@ class Set {
             return node;
         }
 
+        [[nodiscard]]
+        NodePtr fix_up(NodePtr node) {
+            if (!node)
+                return nullptr;
+            
+            if (is_red(node->r()) && !is_red(node->l())) {
+                node = rotate_left(std::move(node));
+            }
+            if (is_red(node->l()) && is_red(node->l()->l())) {
+                node = rotate_right(std::move(node));
+            }
+            if (is_red(node->l()) && is_red(node->r())) {
+                node = flip_colors(std::move(node));
+            }
+            return node;
+        }
+
+        [[nodiscard]]
         NodePtr insert(NodePtr node, const ValueType& value) {
             if (!node) {
                 return std::make_unique<Node<ValueType>>(value);
-            }
-
-            if (is_red(node->l()) && is_red(node->r())) {
-                node = flip_colors(std::move(node));
             }
 
             if (value < node->value) {
@@ -189,18 +381,82 @@ class Set {
                 node->right = insert(std::move(node->right), value);
             }
 
-            if (is_red(node->r()) && !is_red(node->l())) {
-                node = rotate_left(std::move(node));
-            }
-            if (is_red(node->l()) && is_red(node->l()->l())) {
-                node = rotate_right(std::move(node));
-            }
+            return fix_up(std::move(node));
+        }
 
+        [[nodiscard]]
+        NodePtr move_red_left(NodePtr node) {
+            node = flip_colors(std::move(node));
+            if (node->r() && is_red(node->r()->l())) {
+                node->right = rotate_right(std::move(node->right));
+                node = rotate_left(std::move(node));
+                node = flip_colors(std::move(node));
+            }
             return node;
         }
 
-        NodePtr move_red_left(NodePtr node);
-        NodePtr move_red_right(NodePtr node);
-        NodePtr erase_min(NodePtr node);
-        NodePtr erase(NodePtr node, const ValueType& value);
+        [[nodiscard]]
+        NodePtr move_red_right(NodePtr node) {
+            node = flip_colors(std::move(node));
+            if (node->l() && is_red(node->l()->l())) {
+                node = rotate_right(std::move(node));
+                node = flip_colors(std::move(node));
+            }
+            return node;
+        }
+
+        [[nodiscard]]
+        NodePtr erase_min(NodePtr node) {
+            if (!node || !node->left) {
+                return nullptr;
+            }
+            if (node->l() && !is_red(node->l()) && !is_red(node->l()->l())) {
+                node = move_red_left(std::move(node));
+            }
+            node->left = erase_min(std::move(node->left));
+            return fix_up(std::move(node));
+        }
+
+        [[nodiscard]]
+        NodePtr erase(NodePtr node, const ValueType& value) {
+            if (!node) {
+                return nullptr;
+            }
+            if (value < node->value)
+            {
+                if (node->l() && !is_red(node->l()) && !is_red(node->l()->l())) {
+                    node = move_red_left(std::move(node));
+                }
+                node->left = erase(std::move(node->left), value);
+            }
+            else
+            {
+                if (is_red(node->l())) {
+                    node = rotate_right(std::move(node));
+                }
+                
+                if (!(node->value < value) && 
+                    !(value < node->value) &&
+                    !node->r()) {
+                        return nullptr;
+                }
+                
+                if (node->r() && !is_red(node->r()) && !is_red(node->r()->l())) {
+                    node = move_red_right(std::move(node));
+                }
+
+                if (node->value < value) {
+                    node->right = erase(std::move(node->right), value);
+                } else {
+                    RawNode min_right_node = min_node(node->r());
+                    node->value = min_right_node->value;
+                    node->right = erase_min(std::move(node->right));
+                }
+            }
+            return fix_up(std::move(node));
+        }
+    friend class Node<ValueType>;
+    friend class Iterator<ValueType>;
 };
+
+}
