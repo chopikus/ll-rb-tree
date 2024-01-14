@@ -4,13 +4,11 @@
 This repository aims at making the best implementation of the [LLRB-tree data structure](https://sedgewick.io/wp-content/themes/sedgewick/papers/2008LLRB.pdf).
   
 The data structure resembles a usual Red-Black tree, remade with simplicity in mind.
-  
-Unlike lots of another implementations ([here](https://www.geeksforgeeks.org/left-leaning-red-black-tree-insertion/) and [here](http://neerc.ifmo.ru/wiki/index.php?title=%D0%9B%D0%B5%D0%B2%D0%BE%D1%81%D1%82%D0%BE%D1%80%D0%BE%D0%BD%D0%BD%D0%B8%D0%B5_%D0%BA%D1%80%D0%B0%D1%81%D0%BD%D0%BE-%D1%87%D1%91%D1%80%D0%BD%D1%8B%D0%B5_%D0%B4%D0%B5%D1%80%D0%B5%D0%B2%D1%8C%D1%8F) ), `ll-rb-tree` 🌳 actually supports deletion.
 </div>
 
 ## Features
 * `insert`;
-* `erase` (__and__ `eraseMin` __and__ `eraseMax`);
+* `erase`;
 * `lower_bound`;
 * `find`;
 * iterators, `begin()`, `end()`;
@@ -109,17 +107,10 @@ As you can see, the usage is very similar to the `std::set`.
 2. Open the cloned folder -- `cd ll-rb-tree`.
 3. Create new folder for building tests, and open it -- `mkdir build && cd build`.
 4. Run the following command: `cmake .. && make tests`.
-4.1. You can also build the example using `cmake .. && make`. Then the executable called `usage_example` should appear.
 
-All tests are written in `tests/tests.cpp` file.
+4.1. You can also build the example using `cmake .. && make`. Then the executable called `usage_example` will appear.
 
-## File structure
-* `usage_example.cpp` - example file;
-* `tests/test.cpp` - all tests are written here;
-* `src/set.h` - the actual implementation of a data structure.
+All tests are written in the `tests/tests.cpp` file.
 
 ## Benchmarks
 TODO
-
-### Contrubuting
-Pull requests and working on issues will be much appreciated.
