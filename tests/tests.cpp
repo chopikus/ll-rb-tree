@@ -231,9 +231,9 @@ TEST(Set, EmptySet) {
 }
 
 TEST(Set, CopySet) {
-    /*Set<int> q{1, 2, 3};
+    Set<int> q{1, 2, 3};
     q = q;
-    EXPECT_EQ(q.size(), 3);*/
+    EXPECT_EQ(q.size(), 3);
 }
 
 TEST(Set, IteratorsSecond) {

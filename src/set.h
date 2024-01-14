@@ -33,7 +33,7 @@ class Node {
     std::unique_ptr<Node> right{nullptr};
     Node<ValueType>* parent{nullptr};
 
-    Node(const ValueType& v): value{v}, color{Color::RED} {}
+    Node(const ValueType& v): value{v}, color{Color::RED}, size{1} {}
 
     Node(const Node<ValueType>& another) : 
         value{another.value},
@@ -53,6 +53,9 @@ class Node {
         swap(*this, other);
         return *this;
     }
+
+    Node(Node<ValueType>&& another) = default;
+    Node<ValueType>& operator=(Node<ValueType>&& other) = default;
 
     ~Node() = default;
 
@@ -154,7 +157,13 @@ class Set {
         using iterator = Iterator<ValueType>;
 
         Set() {};
-        
+
+        Set(const std::initializer_list<ValueType> &list) {
+            for (auto &element : list) {
+                insert(element);
+            }
+        }
+
         Set(const Set<ValueType>& another) {
             if (another.root)
                 root = std::make_unique<Node<ValueType>>(*another.root);
@@ -166,11 +175,15 @@ class Set {
             return *this;
         }
 
+        Set(Set<ValueType>&& another) = default;
+        Set& operator=(Set<ValueType>&& another) = default;
+
         ~Set() = default;
         
         void insert(const ValueType& value) {
             root = insert(std::move(root), value);
             root->color = Color::BLACK;
+            root->parent = nullptr;
         }
 
         void erase(const ValueType& value) {
@@ -181,8 +194,10 @@ class Set {
                 root->color = Color::RED;
             }
             root = erase(std::move(root), value);
-            if (root)
+            if (root) {
                 root->color = Color::BLACK;
+                root->parent = nullptr;
+            }
         }
         
         iterator begin() const {
@@ -310,6 +325,7 @@ class Set {
             b->right = std::move(g_b);
             b->left = std::move(a); /* a is invalid from here */
             
+            b->color = b->left->color;
             b->left->color = Color::RED;
             b->left->recalc();
             b->recalc();
@@ -330,8 +346,8 @@ class Set {
             a->left = std::move(l_a);
             a->right = std::move(b); /* b invalid from here*/
 
+            a->color = a->right->color;
             a->right->color = Color::RED;
-
             a->right->recalc();
             a->recalc();
             
@@ -380,7 +396,7 @@ class Set {
             } else if (node->value < value) {
                 node->right = insert(std::move(node->right), value);
             }
-
+            node->recalc();
             return fix_up(std::move(node));
         }
 
@@ -414,6 +430,7 @@ class Set {
                 node = move_red_left(std::move(node));
             }
             node->left = erase_min(std::move(node->left));
+            node->recalc();
             return fix_up(std::move(node));
         }
 
@@ -435,10 +452,8 @@ class Set {
                     node = rotate_right(std::move(node));
                 }
                 
-                if (!(node->value < value) && 
-                    !(value < node->value) &&
-                    !node->r()) {
-                        return nullptr;
+                if (!(node->value < value) && !node->r()) {
+                    return nullptr;
                 }
                 
                 if (node->r() && !is_red(node->r()) && !is_red(node->r()->l())) {
@@ -453,6 +468,7 @@ class Set {
                     node->right = erase_min(std::move(node->right));
                 }
             }
+            node->recalc();
             return fix_up(std::move(node));
         }
     friend class Node<ValueType>;

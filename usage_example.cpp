@@ -1,22 +1,39 @@
-#include "src/set.h"
+#include <algorithm>
 #include <iostream>
-#include <memory>
+#include <vector>
+#include "src/set.h"
 
 using namespace std;
 
 int main() {
-   llrb::Set<int> set;
-   set.insert(5);
-   set.insert(4);
-   set.insert(3);
-   set.insert(2);
-   for (int i=1; i<=5; i++) {
-      set.erase(i);
-      std::cout << bool(set.find(5) == set.end()) << std::endl;
-      std::cout << bool(set.find(4) == set.end()) << std::endl;
-      std::cout << bool(set.find(3) == set.end()) << std::endl;
-      std::cout << bool(set.find(2) == set.end()) << std::endl;
-      std::cout << "====" << std::endl;
-   }
-   return 0;
+    int q=0;
+    cin >> q;
+    int cnt=0;
+    llrb::Set<int> my_set;
+    for (int i=0; i<q; i++) {
+        char x='1';
+        cin >> x;
+        if (x=='+') {
+            int value = 0;
+            cin >> value;
+            cnt++;
+            my_set.insert(value);
+        } else if (x=='?') {
+            for (auto s : my_set) {
+                cout << s << ' ';
+            }
+            cout << endl;
+        } else if (x == '-') {
+            int value = 0;
+            cin >> value;
+            my_set.erase(value);
+        } else if (x == '>') {
+            int y=0;
+            cin >> y;
+            if (my_set.lower_bound(y) != my_set.end()) {
+                cout << *(my_set.lower_bound(y)) << endl;
+            }
+        }
+    }
+    return 0;
 }
