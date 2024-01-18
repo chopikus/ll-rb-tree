@@ -13,7 +13,7 @@ The data structure resembles a usual Red-Black tree, remade with simplicity in m
 * `find`;
 * iterators, `begin()`, `end()`;
 * initalizing from `std::initializer_list`;
-* copy constructor;
+* copy & move semantics;
 * and many more!
 
 ## Usage
