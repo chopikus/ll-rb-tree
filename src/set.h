@@ -27,18 +27,16 @@ class Node {
 
     ValueType value;
     Color color;
-    size_t size;
 
     std::unique_ptr<Node> left{nullptr};
     std::unique_ptr<Node> right{nullptr};
     Node<ValueType>* parent{nullptr};
 
-    Node(const ValueType& v): value{v}, color{Color::RED}, size{1} {}
+    Node(const ValueType& v): value{v}, color{Color::RED} {}
 
     Node(const Node<ValueType>& another) : 
         value{another.value},
-        color{another.color},
-        size{another.size} {
+        color{another.color} {
         if (another.left) {
             left = std::make_unique<Node<ValueType>>(*another.left);
             left->parent = this;
@@ -63,7 +61,6 @@ class Node {
         using std::swap;
         swap(first.value, second.value);
         swap(first.color, second.color);
-        swap(first.size, second.size);
         swap(first.left, second.left);
         swap(first.right, second.right);
         swap(first.parent, second.parent);
@@ -78,17 +75,12 @@ class Node {
     }
 
     void recalc() {
-        /* Recalculates parent property for children, as well as size for the node. */
-        size = 1;
-        
         if (left) {
             left->parent = this;
-            size += left->size;
         }
 
         if (right) {
             right->parent = this;
-            size += right->size;
         }    
     }
 };
@@ -167,11 +159,13 @@ class Set {
         Set(const Set<ValueType>& another) {
             if (another.root)
                 root = std::make_unique<Node<ValueType>>(*another.root);
+            _size = another._size;
         }
 
         Set& operator=(const Set<ValueType>& another) {
             if (another.root)
                 root = std::make_unique<Node<ValueType>>(*another.root);
+            _size = another._size;
             return *this;
         }
 
@@ -181,6 +175,7 @@ class Set {
         ~Set() = default;
         
         void insert(const ValueType& value) {
+            ++_size;
             root = insert(std::move(root), value);
             root->color = Color::BLACK;
             root->parent = nullptr;
@@ -213,11 +208,7 @@ class Set {
         }
 
         size_t size() const {
-            if (!root) {
-                return 0;
-            } else {
-                return root->size;
-            }
+            return _size; 
         }
 
         iterator find(const ValueType& value) const {
@@ -230,6 +221,7 @@ class Set {
 
     private:
         NodePtr root{nullptr};
+        size_t _size{0};
 
         inline bool is_red(RawNode node) const {
             if (!node)
@@ -453,6 +445,7 @@ class Set {
                 }
                 
                 if (!(node->value < value) && !node->r()) {
+                    --_size;
                     return nullptr;
                 }
                 
