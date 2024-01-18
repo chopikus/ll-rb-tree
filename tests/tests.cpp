@@ -266,6 +266,40 @@ TEST(Set, IteratorsSecond) {
     ASSERT_EQ(std_iter, std_set.end());
 }
 
+TEST(Node, MoveConstructor) {
+    Node<std::string> move_node{"123456"};
+    Node<std::string> another_node{std::move(move_node)};
+    ASSERT_EQ(another_node.value, "123456");
+    std::cerr << "[Node/MoveConstructor]" << "move_node.value.size() = " << move_node.value.size() << std::endl;
+}
+
+TEST(Node, MoveOperator) {
+    Node<std::string> move_node{"123456"};
+    Node<std::string> another_node{""};
+    another_node = std::move(move_node);
+    ASSERT_EQ(another_node.value, "123456");
+    std::cerr << "[Node/MoveOperator]" << "move_node.value.size() = " << move_node.value.size() << std::endl;
+}
+
+TEST(Set, MoveConstructor) {
+    Set<std::string> move_set{"123456"};
+    Set<std::string> another_set{std::move(move_set)};
+    ASSERT_EQ(another_set.size(), 1);
+    ASSERT_EQ(*another_set.begin(), "123456");
+    ASSERT_TRUE(move_set.empty());
+    ASSERT_TRUE(move_set.size() == 0);
+}
+
+TEST(Set, MoveOperator) {
+    Set<std::string> move_set{"123456"};
+    Set<std::string> another_set;
+    another_set = std::move(move_set);
+    ASSERT_EQ(another_set.size(), 1);
+    ASSERT_EQ(*another_set.begin(), "123456");
+    ASSERT_TRUE(move_set.empty());
+    ASSERT_TRUE(move_set.size() == 0);
+}
+
 int main(int argc, char** argv) {
     registerGen(argc, argv, 1);
     ::testing::InitGoogleTest(&argc, argv);

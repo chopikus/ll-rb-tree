@@ -47,8 +47,9 @@ class Node {
         }
     }
 
-    Node<ValueType>& operator=(Node<ValueType> other) {
-        swap(*this, other);
+    Node<ValueType>& operator=(const Node<ValueType>& other) {
+        Node<ValueType> temp{other};
+        swap(*this, temp);
         return *this;
     }
 
@@ -159,23 +160,33 @@ class Set {
         Set(const Set<ValueType>& another) {
             if (another.root)
                 root = std::make_unique<Node<ValueType>>(*another.root);
-            _size = another._size;
+            sz = another.sz;
         }
 
         Set& operator=(const Set<ValueType>& another) {
             if (another.root)
                 root = std::make_unique<Node<ValueType>>(*another.root);
-            _size = another._size;
+            sz = another.sz;
             return *this;
         }
 
-        Set(Set<ValueType>&& another) = default;
-        Set& operator=(Set<ValueType>&& another) = default;
+        Set(Set<ValueType>&& another) {
+            root = std::move(another.root);
+            sz = another.sz;
+            another.sz = 0;
+        }
+
+        Set& operator=(Set<ValueType>&& another) {
+            root = std::move(another.root);
+            sz = another.sz;
+            another.sz = 0;
+            return *this;
+        }
 
         ~Set() = default;
         
         void insert(const ValueType& value) {
-            ++_size;
+            ++sz;
             root = insert(std::move(root), value);
             root->color = Color::BLACK;
             root->parent = nullptr;
@@ -208,7 +219,7 @@ class Set {
         }
 
         size_t size() const {
-            return _size; 
+            return sz;
         }
 
         iterator find(const ValueType& value) const {
@@ -221,7 +232,7 @@ class Set {
 
     private:
         NodePtr root{nullptr};
-        size_t _size{0};
+        size_t sz{0};
 
         inline bool is_red(RawNode node) const {
             if (!node)
@@ -445,7 +456,7 @@ class Set {
                 }
                 
                 if (!(node->value < value) && !node->r()) {
-                    --_size;
+                    --sz;
                     return nullptr;
                 }
                 
